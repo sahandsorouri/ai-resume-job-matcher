@@ -12,12 +12,21 @@ import ApiKeySidebar from "./components/SideBar/ApiKeySidebar";
 import ResultsSection from "./components/Results/ResultsSection";
 import { apiService } from "./services/api";
 import { JobData, ResumeData, JobSearchFilters } from "./services/firecrawl";
+import { getApiKeysFromMultipleSources } from "./utils/env";
 
 export default function Home() {
   const handleApiKeySet = (firecrawlKey: string) => {
     console.log("API Key set:", firecrawlKey.substring(0, 5) + "...");
     setApiKeysConfigured(true);
   };
+
+  // Check for API keys on component mount
+  useEffect(() => {
+    const { bothConfigured } = getApiKeysFromMultipleSources();
+    if (bothConfigured) {
+      setApiKeysConfigured(true);
+    }
+  }, []);
 
   const handleUrlChange = (url: string) => {
     setUrlInput(url);

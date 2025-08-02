@@ -25,21 +25,52 @@ export const getApiKeys = () => {
   };
 };
 
-// Auto-configure API keys from environment variables (server-side only)
-export const autoConfigureApiKeys = () => {
-  if (typeof window === 'undefined') {
-    // Server-side: we can access environment variables
-    const firecrawlKey = process.env.FIRECRAWL_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
+// Function to check if API keys are available and auto-configure them
+export const checkAndConfigureApiKeys = () => {
+  const { firecrawlKey, openaiKey, bothConfigured } = getApiKeys();
+  
+  // If we have environment variables, store them in localStorage
+  if (typeof window !== 'undefined') {
+    const envFirecrawl = getEnvVar('FIRECRAWL_API_KEY');
+    const envOpenai = getEnvVar('OPENAI_API_KEY');
     
-    if (firecrawlKey && openaiKey) {
-      // Store them in localStorage for client-side access
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('firecrawl-api-key', firecrawlKey);
-        localStorage.setItem('openai-api-key', openaiKey);
-      }
-      return true;
+    if (envFirecrawl && !localStorage.getItem('firecrawl-api-key')) {
+      localStorage.setItem('firecrawl-api-key', envFirecrawl);
+    }
+    
+    if (envOpenai && !localStorage.getItem('openai-api-key')) {
+      localStorage.setItem('openai-api-key', envOpenai);
     }
   }
-  return false;
+  
+  return { firecrawlKey, openaiKey, bothConfigured };
+};
+
+// Alternative approach: Check for environment variables in the URL or other sources
+export const getApiKeysFromMultipleSources = () => {
+  // Check localStorage first
+  const localStorageFirecrawl = typeof window !== 'undefined' ? localStorage.getItem('firecrawl-api-key') : null;
+  const localStorageOpenai = typeof window !== 'undefined' ? localStorage.getItem('openai-api-key') : null;
+  
+  // Check environment variables
+  const envFirecrawl = getEnvVar('FIRECRAWL_API_KEY');
+  const envOpenai = getEnvVar('OPENAI_API_KEY');
+  
+  // Check URL parameters (for testing)
+  let urlFirecrawl = null;
+  let urlOpenai = null;
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlFirecrawl = urlParams.get('firecrawl_key');
+    urlOpenai = urlParams.get('openai_key');
+  }
+  
+  const firecrawlKey = envFirecrawl || localStorageFirecrawl || urlFirecrawl;
+  const openaiKey = envOpenai || localStorageOpenai || urlOpenai;
+  
+  return {
+    firecrawlKey,
+    openaiKey,
+    bothConfigured: !!(firecrawlKey && openaiKey)
+  };
 }; 

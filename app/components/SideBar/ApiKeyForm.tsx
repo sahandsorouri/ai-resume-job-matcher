@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../Button/Button";
 import Input from "../InputSection/Input";
 import { apiService } from "../../services/api";
-import { getApiKeys } from "../../utils/env";
+import { getApiKeysFromMultipleSources } from "../../utils/env";
 import { Eye, EyeOff } from "lucide-react";
 
 interface ApiKeyFormProps {
@@ -21,7 +21,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
 
   // Check if API keys exist on component mount
   useEffect(() => {
-    const { firecrawlKey, openaiKey, bothConfigured } = getApiKeys();
+    const { firecrawlKey, openaiKey, bothConfigured } = getApiKeysFromMultipleSources();
     
     // Check environment variables first
     if (firecrawlKey) {
