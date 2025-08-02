@@ -1,0 +1,8 @@
+[build]
+command = "npm run build"
+
+[env.production]
+name = "deep-job-researcher"
+
+[env.production.pages]
+build_output_dir = ".next" 
