@@ -5,6 +5,7 @@ import {
   JobSearchFilters,
 } from "./firecrawl";
 import { matchJobsClient, summarizeResumeClient } from "./clientApi";
+import { getApiKeys } from "../utils/env";
 
 // Progress update callback type
 export type ProgressCallback = (message: string) => void;
@@ -22,8 +23,12 @@ class ApiService {
     }
   }
 
-  // Get the Firecrawl API key from local storage
+  // Get the Firecrawl API key from local storage or environment
   getFirecrawlApiKey(): string | null {
+    const { firecrawlKey } = getApiKeys();
+    if (firecrawlKey) {
+      return firecrawlKey;
+    }
     if (typeof window !== "undefined") {
       return localStorage.getItem(this.FIRECRAWL_API_KEY_STORAGE_KEY);
     }
@@ -43,8 +48,12 @@ class ApiService {
     }
   }
 
-  // Get the OpenAI API key from local storage
+  // Get the OpenAI API key from local storage or environment
   getOpenaiApiKey(): string | null {
+    const { openaiKey } = getApiKeys();
+    if (openaiKey) {
+      return openaiKey;
+    }
     if (typeof window !== "undefined") {
       return localStorage.getItem(this.OPENAI_API_KEY_STORAGE_KEY);
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../Button/Button";
 import Input from "../InputSection/Input";
 import { apiService } from "../../services/api";
+import { getApiKeys } from "../../utils/env";
 import { Eye, EyeOff } from "lucide-react";
 
 interface ApiKeyFormProps {
@@ -20,22 +21,36 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
 
   // Check if API keys exist on component mount
   useEffect(() => {
-    const storedFirecrawlKey = apiService.getFirecrawlApiKey();
-    const storedOpenaiKey = apiService.getOpenaiApiKey();
-
-    if (storedFirecrawlKey) {
-      setFirecrawlApiKey(storedFirecrawlKey);
+    const { firecrawlKey, openaiKey, bothConfigured } = getApiKeys();
+    
+    // Check environment variables first
+    if (firecrawlKey) {
+      setFirecrawlApiKey(firecrawlKey);
       setIsFirecrawlStored(true);
+    } else {
+      // Fallback to localStorage
+      const storedFirecrawlKey = apiService.getFirecrawlApiKey();
+      if (storedFirecrawlKey) {
+        setFirecrawlApiKey(storedFirecrawlKey);
+        setIsFirecrawlStored(true);
+      }
     }
 
-    if (storedOpenaiKey) {
-      setOpenaiApiKey(storedOpenaiKey);
+    if (openaiKey) {
+      setOpenaiApiKey(openaiKey);
       setIsOpenaiStored(true);
+    } else {
+      // Fallback to localStorage
+      const storedOpenaiKey = apiService.getOpenaiApiKey();
+      if (storedOpenaiKey) {
+        setOpenaiApiKey(storedOpenaiKey);
+        setIsOpenaiStored(true);
+      }
     }
 
-    // Only call onApiKeySet if both keys are stored
-    if (storedFirecrawlKey && storedOpenaiKey) {
-      onApiKeySet(storedFirecrawlKey);
+    // Only call onApiKeySet if both keys are configured
+    if (bothConfigured || (firecrawlKey && openaiKey)) {
+      onApiKeySet(firecrawlKey || "");
     }
   }, [onApiKeySet]);
 
@@ -262,7 +277,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
           </a>
           . The key must start with 'fc-'.
         </p>
-        <p className='text-xs text-gray-600'>
+        <p className='text-xs text-gray-600 mb-2'>
           <strong>OpenAI API Key:</strong> Get your API key from{" "}
           <a
             href='https://platform.openai.com/api-keys'
@@ -273,6 +288,12 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
           </a>
           . The key must start with 'sk-'.
         </p>
+        <div className='mt-3 p-2 bg-blue-50 rounded-md'>
+          <p className='text-xs text-blue-700'>
+            <strong>Note:</strong> Your API keys are stored locally in your browser and are never sent to our servers. 
+            They are only used to make direct API calls to Firecrawl and OpenAI services.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -94,6 +94,17 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Inject environment variables for client-side access */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.__ENV__ = {
+                FIRECRAWL_API_KEY: "${process.env.NEXT_PUBLIC_FIRECRAWL_API_KEY || ''}",
+                OPENAI_API_KEY: "${process.env.NEXT_PUBLIC_OPENAI_API_KEY || ''}"
+              };
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         {children}
