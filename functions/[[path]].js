@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   
   // Only handle HTML files
-  if (!url.pathname.endsWith('.html') && url.pathname !== '/' && !url.pathname.includes('.')) {
+  if (url.pathname.includes('.') && !url.pathname.endsWith('.html')) {
     // For non-HTML requests, serve the static file
     return context.next();
   }
