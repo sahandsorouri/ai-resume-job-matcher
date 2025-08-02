@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   env: {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY,
   },
   // Disable ESLint during build to prevent failure due to warnings
   eslint: {
