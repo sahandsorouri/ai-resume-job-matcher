@@ -104,7 +104,10 @@ export async function matchJobsClient(
     }
 
     // Initialize OpenAI with valid API key
-    const openai = new OpenAI({ apiKey });
+    const openai = new OpenAI({ 
+      apiKey,
+      dangerouslyAllowBrowser: true 
+    });
 
     // Prepare the data for the OpenAI API
     const userSkills = profile.skills?.join(", ") || "";
@@ -241,7 +244,10 @@ export async function summarizeResumeClient(
     throw new Error("OpenAI API key is required");
   }
 
-  const openai = new OpenAI({ apiKey });
+  const openai = new OpenAI({ 
+    apiKey,
+    dangerouslyAllowBrowser: true 
+  });
 
   try {
     console.log("Client-side resume summarization started");
