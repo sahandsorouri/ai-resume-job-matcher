@@ -1,4 +1,2 @@
-pages_build_output_dir = ".next"
-
-[build]
-command = "npm run build" 
+name = "deep-job-researcher"
+pages_build_output_dir = ".next" 
