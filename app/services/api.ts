@@ -27,6 +27,10 @@ class ApiService {
   getFirecrawlApiKey(): string | null {
     const { firecrawlKey } = getApiKeys();
     if (firecrawlKey) {
+      // Auto-store environment variables in localStorage for persistence
+      if (typeof window !== "undefined" && firecrawlKey && !localStorage.getItem(this.FIRECRAWL_API_KEY_STORAGE_KEY)) {
+        localStorage.setItem(this.FIRECRAWL_API_KEY_STORAGE_KEY, firecrawlKey);
+      }
       return firecrawlKey;
     }
     if (typeof window !== "undefined") {
@@ -52,6 +56,10 @@ class ApiService {
   getOpenaiApiKey(): string | null {
     const { openaiKey } = getApiKeys();
     if (openaiKey) {
+      // Auto-store environment variables in localStorage for persistence
+      if (typeof window !== "undefined" && openaiKey && !localStorage.getItem(this.OPENAI_API_KEY_STORAGE_KEY)) {
+        localStorage.setItem(this.OPENAI_API_KEY_STORAGE_KEY, openaiKey);
+      }
       return openaiKey;
     }
     if (typeof window !== "undefined") {

@@ -1,2 +1,5 @@
 name = "deep-job-researcher"
-pages_build_output_dir = "out" 
+pages_build_output_dir = "out"
+
+[functions]
+directory = "functions" 

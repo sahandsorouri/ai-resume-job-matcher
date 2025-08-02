@@ -288,9 +288,15 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
           </a>
           . The key must start with 'sk-'.
         </p>
-        <div className='mt-3 p-2 bg-blue-50 rounded-md'>
+        <div className='mt-3 p-2 bg-green-50 rounded-md'>
+          <p className='text-xs text-green-700'>
+            <strong>Auto-Configuration:</strong> If you have environment variables configured in Cloudflare Pages, 
+            the API keys will be automatically detected and configured for you.
+          </p>
+        </div>
+        <div className='mt-2 p-2 bg-blue-50 rounded-md'>
           <p className='text-xs text-blue-700'>
-            <strong>Note:</strong> Your API keys are stored locally in your browser and are never sent to our servers. 
+            <strong>Security:</strong> Your API keys are stored locally in your browser and are never sent to our servers. 
             They are only used to make direct API calls to Firecrawl and OpenAI services.
           </p>
         </div>
