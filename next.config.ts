@@ -14,7 +14,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   // Webpack optimization to reduce bundle size
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    // Completely disable webpack cache
+    config.cache = false;
+    
     if (!isServer) {
       // Optimize client-side bundle with smaller chunks
       config.optimization = {
@@ -54,6 +57,10 @@ const nextConfig: NextConfig = {
   },
   // Enable compression
   compress: true,
+  // Disable webpack cache completely
+  experimental: {
+    webpackBuildWorker: false,
+  },
 };
 
 export default nextConfig;
