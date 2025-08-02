@@ -13,6 +13,47 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Webpack optimization to reduce bundle size
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Optimize client-side bundle with smaller chunks
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: "all",
+          maxSize: 244000, // Keep chunks under 250KB
+          cacheGroups: {
+            default: {
+              minChunks: 1,
+              priority: -20,
+              reuseExistingChunk: true,
+            },
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: "vendors",
+              chunks: "all",
+              priority: -10,
+            },
+            react: {
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              name: "react",
+              chunks: "all",
+              priority: 10,
+            },
+            firecrawl: {
+              test: /[\\/]node_modules[\\/](@mendable)[\\/]/,
+              name: "firecrawl",
+              chunks: "all",
+              priority: 5,
+            },
+          },
+        },
+      };
+    }
+    return config;
+  },
+  // Enable compression
+  compress: true,
 };
 
 export default nextConfig;
