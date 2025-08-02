@@ -62,7 +62,8 @@ const nextConfig: NextConfig = {
   experimental: {
     webpackBuildWorker: false,
   },
-  // Configure for Cloudflare Pages
+  // Configure for Cloudflare Pages - Static Export
+  output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true,

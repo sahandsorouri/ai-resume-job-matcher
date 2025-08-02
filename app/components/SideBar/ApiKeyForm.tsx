@@ -10,18 +10,31 @@ interface ApiKeyFormProps {
 
 const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
   const [firecrawlApiKey, setFirecrawlApiKey] = useState("");
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [isFirecrawlStored, setIsFirecrawlStored] = useState(false);
+  const [isOpenaiStored, setIsOpenaiStored] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showFirecrawlPassword, setShowFirecrawlPassword] = useState(false);
+  const [showOpenaiPassword, setShowOpenaiPassword] = useState(false);
 
   // Check if API keys exist on component mount
   useEffect(() => {
     const storedFirecrawlKey = apiService.getFirecrawlApiKey();
+    const storedOpenaiKey = apiService.getOpenaiApiKey();
 
     if (storedFirecrawlKey) {
       setFirecrawlApiKey(storedFirecrawlKey);
       setIsFirecrawlStored(true);
+    }
+
+    if (storedOpenaiKey) {
+      setOpenaiApiKey(storedOpenaiKey);
+      setIsOpenaiStored(true);
+    }
+
+    // Only call onApiKeySet if both keys are stored
+    if (storedFirecrawlKey && storedOpenaiKey) {
       onApiKeySet(storedFirecrawlKey);
     }
   }, [onApiKeySet]);
@@ -30,18 +43,32 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
     e.preventDefault();
     setError(null);
 
-    // Remove all whitespace from the key
-    const cleanKey = firecrawlApiKey.trim().replace(/\s+/g, "");
+    // Remove all whitespace from the keys
+    const cleanFirecrawlKey = firecrawlApiKey.trim().replace(/\s+/g, "");
+    const cleanOpenaiKey = openaiApiKey.trim().replace(/\s+/g, "");
 
-    if (!cleanKey) {
-      setError("API key is required");
+    if (!cleanFirecrawlKey) {
+      setError("Firecrawl API key is required");
       return;
     }
 
-    // Validate key format
-    if (!cleanKey.startsWith("fc-")) {
+    if (!cleanOpenaiKey) {
+      setError("OpenAI API key is required");
+      return;
+    }
+
+    // Validate Firecrawl key format
+    if (!cleanFirecrawlKey.startsWith("fc-")) {
       setError(
-        'API key must start with "fc-". Please enter the complete key as provided.',
+        'Firecrawl API key must start with "fc-". Please enter the complete key as provided.',
+      );
+      return;
+    }
+
+    // Validate OpenAI key format (basic check)
+    if (!cleanOpenaiKey.startsWith("sk-")) {
+      setError(
+        'OpenAI API key must start with "sk-". Please enter the complete key as provided.',
       );
       return;
     }
@@ -49,15 +76,17 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
     setIsLoading(true);
 
     try {
-      // Store Firecrawl API key
-      apiService.setFirecrawlApiKey(cleanKey);
+      // Store both API keys
+      apiService.setFirecrawlApiKey(cleanFirecrawlKey);
+      apiService.setOpenaiApiKey(cleanOpenaiKey);
       setIsFirecrawlStored(true);
-      onApiKeySet(cleanKey);
+      setIsOpenaiStored(true);
+      onApiKeySet(cleanFirecrawlKey);
     } catch (error: any) {
-      console.error("Failed to set API key:", error);
+      console.error("Failed to set API keys:", error);
       setError(
         error.message ||
-          "Failed to set API key. Please check the format and try again.",
+          "Failed to set API keys. Please check the format and try again.",
       );
     } finally {
       setIsLoading(false);
@@ -71,6 +100,13 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
     setError(null);
   };
 
+  const handleClearOpenaiKey = () => {
+    apiService.clearOpenaiApiKey();
+    setOpenaiApiKey("");
+    setIsOpenaiStored(false);
+    setError(null);
+  };
+
   return (
     <div className='space-y-6'>
       {/* Firecrawl API Key Form */}
@@ -78,7 +114,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
         <h3 className='text-md font-medium text-gray-900 mb-2'>
           Firecrawl API Key
         </h3>
-        <form onSubmit={handleSubmit} className='space-y-4'>
+        <div className='space-y-4'>
           <div className='relative'>
             <Input
               value={firecrawlApiKey}
@@ -86,7 +122,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
                 setFirecrawlApiKey(e.target.value);
                 setError(null);
               }}
-              type={showPassword ? "text" : "password"}
+              type={showFirecrawlPassword ? "text" : "password"}
               placeholder='Enter your Firecrawl API key (must start with fc-)'
               fullWidth
               disabled={isFirecrawlStored}
@@ -101,22 +137,21 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
             <button
               type='button'
               className='absolute right-4 top-[14px] text-gray-500 hover:text-gray-700 focus:outline-none p-1'
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowFirecrawlPassword(!showFirecrawlPassword)}
               tabIndex={-1}
-              aria-label={showPassword ? "Hide password" : "Show password"}>
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              aria-label={showFirecrawlPassword ? "Hide password" : "Show password"}>
+              {showFirecrawlPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
 
           <div className='flex gap-2'>
             {!isFirecrawlStored ? (
               <Button
-                type='submit'
-                isLoading={isLoading}
+                onClick={() => setIsFirecrawlStored(true)}
                 fullWidth
                 size='sm'
                 squared>
-                Save Key
+                Mark as Saved
               </Button>
             ) : (
               <>
@@ -133,16 +168,91 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
               </>
             )}
           </div>
-        </form>
+        </div>
       </div>
+
+      {/* OpenAI API Key Form */}
+      <div className='bg-white rounded-md'>
+        <h3 className='text-md font-medium text-gray-900 mb-2'>
+          OpenAI API Key
+        </h3>
+        <div className='space-y-4'>
+          <div className='relative'>
+            <Input
+              value={openaiApiKey}
+              onChange={(e) => {
+                setOpenaiApiKey(e.target.value);
+                setError(null);
+              }}
+              type={showOpenaiPassword ? "text" : "password"}
+              placeholder='Enter your OpenAI API key (must start with sk-)'
+              fullWidth
+              disabled={isOpenaiStored}
+              required
+              error={!!error}
+              helperText={
+                error ||
+                'Required for AI analysis. Must start with "sk-". Enter the key exactly as provided.'
+              }
+              className='pr-10'
+            />
+            <button
+              type='button'
+              className='absolute right-4 top-[14px] text-gray-500 hover:text-gray-700 focus:outline-none p-1'
+              onClick={() => setShowOpenaiPassword(!showOpenaiPassword)}
+              tabIndex={-1}
+              aria-label={showOpenaiPassword ? "Hide password" : "Show password"}>
+              {showOpenaiPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+
+          <div className='flex gap-2'>
+            {!isOpenaiStored ? (
+              <Button
+                onClick={() => setIsOpenaiStored(true)}
+                fullWidth
+                size='sm'
+                squared>
+                Mark as Saved
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant='outline'
+                  onClick={handleClearOpenaiKey}
+                  size='sm'
+                  squared>
+                  Change
+                </Button>
+                <Button disabled size='sm' className='flex-1' squared>
+                  Key Saved ✓
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Save Both Keys Button */}
+      <form onSubmit={handleSubmit}>
+        <Button
+          type='submit'
+          isLoading={isLoading}
+          fullWidth
+          size='lg'
+          disabled={!isFirecrawlStored || !isOpenaiStored}
+          className='mt-4'>
+          {isFirecrawlStored && isOpenaiStored ? "Save Both Keys" : "Configure Both Keys First"}
+        </Button>
+      </form>
 
       {/* Help Text */}
       <div className='mt-8 pt-4 border-t border-gray-200'>
         <h3 className='text-sm font-medium text-gray-700 mb-2'>
           About API Keys
         </h3>
-        <p className='text-xs text-gray-600'>
-          Enter your Firecrawl API key here. Get your API key from{" "}
+        <p className='text-xs text-gray-600 mb-2'>
+          <strong>Firecrawl API Key:</strong> Get your API key from{" "}
           <a
             href='https://firecrawl.dev'
             target='_blank'
@@ -150,7 +260,18 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onApiKeySet }) => {
             className='text-orange-500 hover:text-orange-600'>
             firecrawl.dev
           </a>
-          . The key must start with 'fc-'. Enter the key exactly as provided.
+          . The key must start with 'fc-'.
+        </p>
+        <p className='text-xs text-gray-600'>
+          <strong>OpenAI API Key:</strong> Get your API key from{" "}
+          <a
+            href='https://platform.openai.com/api-keys'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-orange-500 hover:text-orange-600'>
+            platform.openai.com
+          </a>
+          . The key must start with 'sk-'.
         </p>
       </div>
     </div>

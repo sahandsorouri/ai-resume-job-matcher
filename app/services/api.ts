@@ -4,12 +4,14 @@ import {
   JobData,
   JobSearchFilters,
 } from "./firecrawl";
+import { matchJobsClient, summarizeResumeClient } from "./clientApi";
 
 // Progress update callback type
 export type ProgressCallback = (message: string) => void;
 
 class ApiService {
   private FIRECRAWL_API_KEY_STORAGE_KEY = "firecrawl-api-key";
+  private OPENAI_API_KEY_STORAGE_KEY = "openai-api-key";
 
   // Set the Firecrawl API key in local storage
   setFirecrawlApiKey(key: string) {
@@ -32,6 +34,27 @@ class ApiService {
   clearFirecrawlApiKey(): void {
     if (typeof window === "undefined") return;
     localStorage.removeItem(this.FIRECRAWL_API_KEY_STORAGE_KEY);
+  }
+
+  // Set the OpenAI API key in local storage
+  setOpenaiApiKey(key: string) {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(this.OPENAI_API_KEY_STORAGE_KEY, key);
+    }
+  }
+
+  // Get the OpenAI API key from local storage
+  getOpenaiApiKey(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(this.OPENAI_API_KEY_STORAGE_KEY);
+    }
+    return null;
+  }
+
+  // Clear the OpenAI API key from local storage
+  clearOpenaiApiKey(): void {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(this.OPENAI_API_KEY_STORAGE_KEY);
   }
 
   // Process a profile URL and find matching jobs
@@ -72,16 +95,15 @@ class ApiService {
         initialFilters, 
       );
 
-      // Match jobs to the profile using server-side API
+      // Match jobs to the profile using client-side API
       updateProgress("Calculating match scores for job listings...");
-      const matchedJobs = await this.matchJobsWithProfile(
-        profile,
-        jobs,
-        analysis,
-        updateProgress,
-      );
+      const openaiApiKey = this.getOpenaiApiKey();
+      if (!openaiApiKey) {
+        throw new Error("OpenAI API key is required for job matching");
+      }
+      const matchedJobs = await matchJobsClient(profile, jobs, analysis, openaiApiKey);
 
-      return { profile, jobs: matchedJobs, analysis };
+      return { profile, jobs: matchedJobs.jobs, analysis };
     } catch (error) {
       console.error("API service error:", error);
       throw error;
@@ -104,7 +126,27 @@ class ApiService {
 
     try {
       updateProgress("Processing your resume...");
-      const profile = await firecrawlService.processResumeFile(file);
+      const openaiApiKey = this.getOpenaiApiKey();
+      if (!openaiApiKey) {
+        throw new Error("OpenAI API key is required for resume processing");
+      }
+      const summary = await summarizeResumeClient(file, openaiApiKey);
+      
+      // Convert summary to ResumeData format
+      const profile: ResumeData = {
+        name: summary.name || "Unknown",
+        title: summary.title || "Professional",
+        skills: summary.skills || [],
+        experience: summary.job_profiles.map((job) => ({
+          position: job.title,
+          company: job.company,
+          startDate: job.start_date,
+          endDate: job.end_date,
+          description: job.description || "",
+        })),
+        education: [],
+        summary: summary.summary_text || "",
+      };
 
       // Find job matches based on extracted profile
       updateProgress("Finding job matches based on your resume...");
@@ -125,63 +167,18 @@ class ApiService {
         initialFilters, // Pass initial filters if provided
       );
 
-      // Match jobs to the profile using server-side API
+      // Match jobs to the profile using client-side API
       updateProgress("Calculating match scores for job listings...");
-      const matchedJobs = await this.matchJobsWithProfile(
-        profile,
-        jobs,
-        analysis,
-        updateProgress,
-      );
+      const matchedJobs = await matchJobsClient(profile, jobs, analysis, openaiApiKey);
 
-      return { profile, jobs: matchedJobs, analysis };
+      return { profile, jobs: matchedJobs.jobs, analysis };
     } catch (error) {
       console.error("API service error:", error);
       throw error;
     }
   }
 
-  // Helper method to match jobs using the server-side API
-  private async matchJobsWithProfile(
-    profile: ResumeData,
-    jobs: JobData[],
-    analysis: string,
-    updateProgress: ProgressCallback = () => {},
-  ): Promise<JobData[]> {
-    try {
-    
-      if (jobs.length > 0 && jobs[0].matchScore) {
-        updateProgress("Using existing job match scores");
-        return jobs;
-      }
 
-      // Call the server-side API route for matching
-      updateProgress("Sending data to OpenAI for advanced matching...");
-      const response = await fetch("/api/match-jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ profile, jobs, analysis }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      updateProgress("Received and processing job match results");
-      const result = await response.json();
-      return result.jobs;
-    } catch (error) {
-      console.error("Error matching jobs with profile:", error);
-
-      throw new Error(
-        `Failed to match jobs with profile: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      );
-    }
-  }
 
   // Method to handle job filtering with filters
   async findJobsWithFilters(
@@ -203,17 +200,16 @@ class ApiService {
       filters,
     );
 
-    // Match jobs to the profile using server-side API
+    // Match jobs to the profile using client-side API
     updateProgress("Calculating match scores for filtered job listings...");
-    const matchedJobs = await this.matchJobsWithProfile(
-      profile,
-      results.jobs,
-      results.analysis,
-      updateProgress,
-    );
+    const openaiApiKey = this.getOpenaiApiKey();
+    if (!openaiApiKey) {
+      throw new Error("OpenAI API key is required for job matching");
+    }
+    const matchedJobs = await matchJobsClient(profile, results.jobs, results.analysis, openaiApiKey);
 
     return {
-      jobs: matchedJobs,
+      jobs: matchedJobs.jobs,
       analysis: results.analysis,
     };
   }
