@@ -1,90 +1,45 @@
 # Deep Job Researcher
 
-A Next.js application that helps job seekers find relevant positions by analyzing their resume or portfolio. Powered by [Firecrawl](https://firecrawl.dev) for intelligent web crawling and OpenAI for resume analysis.
+> AI job matcher for PMs: upload a resume, crawl live listings, rank matches with explanations.
 
-## Features
+**Live:** [deep-job-researcher.sorouri.com](https://deep-job-researcher.sorouri.com)
 
-- **Resume Analysis**: Upload your PDF resume for AI-powered skill and experience extraction
-- **Job Matching**: Automatically find job listings that match your skills and experience
-- **Advanced Filtering**: Filter jobs by work type, location, salary range, and experience level
-- **Match Scoring**: See how well each job matches your profile with detailed explanations
+## The Problem
 
-## Getting Started
+Job search is slow when you manually scan boards and guess fit. I wanted one flow: parse my resume once, pull real postings from the web, and see why each role matches or not.
 
-First, run the development server:
+## What I Built
+
+A Next.js app I use in my own job hunt. Upload a PDF resume, set filters (role, location, work type, salary band), and get a ranked list of jobs with match scores and short explanations.
+
+Built and deployed by me. Not a team project.
+
+## Key Features
+
+- PDF resume upload with skill and experience extraction (OpenAI)
+- Web job discovery via Firecrawl
+- Filters: work type, location, salary, experience level
+- Per-job match score with a plain-language reason
+
+## Stack
+
+`Next.js 15` `TypeScript` `React 19` `Tailwind CSS` `OpenAI` `Firecrawl` `Cloudflare Pages`
+
+## How to Run
 
 ```bash
+npm install
+cp .env.example .env.local   # add OPENAI_API_KEY; Firecrawl key via app settings
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Environment Variables
+## Results / Usage
 
-This application requires the following environment variables:
+- Running in production at [deep-job-researcher.sorouri.com](https://deep-job-researcher.sorouri.com)
+- Built to dogfood my own PM job search workflow
 
-```
-# API Keys 
-OPENAI_API_KEY=your_openai_api_key_here
+## About
 
-# Environment
-NODE_ENV=development
-
-
-```
-
-For production deployment, create a `.env.production` file with the appropriate values.
-
-## Using Firecrawl API
-
-This application uses the Firecrawl API for web crawling and data extraction. To use your own Firecrawl API key:
-
-1. Sign up for an account at [Firecrawl](https://firecrawl.dev)
-2. Obtain your API key from the dashboard
-3. Enter your API key in the application's settings page
-4. The application will use your key for all future requests
-
-## OpenAI Integration
-
-The application uses OpenAI's GPT models for:
-
-1. Resume parsing and skill extraction
-2. Job matching and relevance scoring
-3. Generating job match explanations
-
-You must provide a valid OpenAI API key in the environment variables for these features to work.
-
-## How It Works
-
-1. **Upload Resume**: The system extracts your skills, experience, and qualifications
-2. **Search Jobs**: The application uses Firecrawl to search the web for relevant job listings
-3. **Match Analysis**: OpenAI analyzes the job postings against your resume
-4. **Results**: See a ranked list of matching jobs with detailed match explanations
-
-## Deployment
-
-### Deploy on Vercel
-
-The easiest way to deploy this app is to use the [Vercel Platform](https://vercel.com/new):
-
-1. Push your code to a Git repository (GitHub, GitLab, Bitbucket)
-2. Import your project to Vercel
-3. Set up environment variables in the Vercel dashboard
-4. Your app will be deployed to a production URL
-
-### Security Considerations
-
-- Never commit API keys to your repository
-- Set up proper CORS policies in production
-- Consider rate limiting for API endpoints
-- Ensure PDF processing is done securely
-
-## Learn More
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Firecrawl Documentation](https://firecrawl.dev/docs)
-- [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
+Built by [Sahand Sorouri](https://github.com/sahandsorouri) — AI Product Manager.
