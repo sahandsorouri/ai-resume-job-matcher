@@ -1,25 +1,15 @@
-// API key detection for Cloudflare Pages with environment variables
+// API keys are provided by the user and stored only in their own browser's
+// localStorage. Nothing is read from the server or injected into the page, so
+// no owner keys are ever shipped to the client.
 export const getApiKeysFromMultipleSources = () => {
-  // Check environment variables first (injected by Cloudflare Function)
-  let firecrawlKey = null;
-  let openaiKey = null;
-  
+  let firecrawlKey: string | null = null;
+  let openaiKey: string | null = null;
+
   if (typeof window !== 'undefined') {
-    const envVars = (window as any).__ENV__;
-    if (envVars) {
-      firecrawlKey = envVars.FIRECRAWL_API_KEY || null;
-      openaiKey = envVars.OPENAI_API_KEY || null;
-    }
+    firecrawlKey = localStorage.getItem('firecrawl-api-key');
+    openaiKey = localStorage.getItem('openai-api-key');
   }
-  
-  // Fallback to localStorage if environment variables not available
-  if (!firecrawlKey) {
-    firecrawlKey = typeof window !== 'undefined' ? localStorage.getItem('firecrawl-api-key') : null;
-  }
-  if (!openaiKey) {
-    openaiKey = typeof window !== 'undefined' ? localStorage.getItem('openai-api-key') : null;
-  }
-  
+
   return {
     firecrawlKey,
     openaiKey,
@@ -28,6 +18,6 @@ export const getApiKeysFromMultipleSources = () => {
 };
 
 // Legacy functions for compatibility
-export const getEnvVar = (key: string): string | null => null;
+export const getEnvVar = (_key: string): string | null => null;
 export const getApiKeys = () => getApiKeysFromMultipleSources();
-export const checkAndConfigureApiKeys = () => getApiKeysFromMultipleSources(); 
+export const checkAndConfigureApiKeys = () => getApiKeysFromMultipleSources();

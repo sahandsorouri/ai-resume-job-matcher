@@ -25,15 +25,18 @@ Built and deployed by me. Not a team project.
 
 `Next.js 15` `TypeScript` `React 19` `Tailwind CSS` `OpenAI` `Firecrawl` `Cloudflare Pages`
 
+## API Keys (bring your own)
+
+The app uses your own OpenAI and Firecrawl keys. On first use you enter them in the app settings, and they are stored only in your browser's localStorage. They are never sent to a server or shared, and no keys are bundled with the app.
+
 ## How to Run
 
 ```bash
 npm install
-cp .env.example .env.local   # add OPENAI_API_KEY; Firecrawl key via app settings
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000), then add your OpenAI and Firecrawl keys in the app settings.
 
 ## Results / Usage
 
